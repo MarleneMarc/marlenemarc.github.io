@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>SOS Code Nomenclature</title>
+
+<style>
+*{box-sizing:border-box}
+body{font-family:Segoe UI,Arial;padding:40px;overflow-x:hidden;transition:background 1s}
+.box{background:white;padding:30px;border-radius:25px;max-width:650px;margin:auto;box-shadow:0 20px 50px rgba(0,0,0,0.25);text-align:center;animation:pop 0.7s}
+.subtitle{color:#666;margin-bottom:20px;font-style:italic}
+input{width:100%;padding:16px;border-radius:15px;border:1px solid #ccc;font-size:16px;transition:0.3s}
+input:focus{border-color:#ff758c;box-shadow:0 0 15px rgba(255,117,140,0.6);outline:none;transform:scale(1.01)}
+button{margin-top:10px;padding:14px;width:100%;border:none;border-radius:15px;background:var(--btn);color:white;font-size:15px;cursor:pointer;transition:0.3s}
+button:hover{background:var(--btnHover);transform:scale(1.03)}
+.secondary{background:#6c7ae0}
+.secondary:hover{background:#5563c1}
+.result{margin-top:20px;padding:18px;border-radius:15px;background:#f3e8ff;text-align:left;animation:slide 0.4s}
+.code{font-size:13px;color:#555}
+.mascotte{position:fixed;bottom:20px;right:20px;width:120px;animation:bounce 2s infinite;cursor:pointer}
+.bubble{position:fixed;bottom:150px;right:20px;background:white;padding:12px;border-radius:12px;display:none;box-shadow:0 5px 15px rgba(0,0,0,0.2);max-width:220px;font-size:13px}
+.history{margin-top:20px;text-align:left;font-size:13px;color:#555}
+.sos{font-size:50px;animation:blink 1s 3}
+.logo-fond{position:fixed;bottom:20px;left:20px;width:140px;opacity:0.45;pointer-events:none}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+@keyframes pop{from{transform:scale(0.7);opacity:0}to{transform:scale(1);opacity:1}}
+@keyframes slide{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+
+/* ===== NOUVEAU STYLE RESULTATS ===== */
+
+.badge{
+  display:inline-block;
+  font-size:12px;
+  background:#f0f0f0;
+  padding:6px 12px;
+  border-radius:20px;
+  margin-bottom:10px;
+  color:#555;
+  font-weight:600;
+}
+
+.titre{
+  margin:5px 0 15px 0;
+  font-size:18px;
+  color:#333;
+}
+
+.infos{
+  font-size:14px;
+  color:#555;
+  line-height:1.6;
+}
+
+.code-highlight{
+  background:#ffffff;
+  padding:6px 10px;
+  border-radius:8px;
+  font-weight:bold;
+  color:#6c2bd9;
+  box-shadow:0 3px 8px rgba(0,0,0,0.08);
+}
+.top-result{
+  border:2px solid var(--btn);
+  transform:scale(1.02);
+}
+
+.best-badge{
+  background:var(--btn);
+  color:white;
+  font-size:12px;
+  padding:5px 10px;
+  border-radius:15px;
+  display:inline-block;
+  margin-bottom:10px;
+  font-weight:600;
+}
+.type-badge{
+  width:28px;
+  height:28px;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight:bold;
+  color:white;
+  font-size:14px;
+}
+
+.type-F{
+  background:#4caf50; /* vert */
+}
+
+.type-S{
+  background:#2196f3; /* bleu */
+}
+
+.type-T{
+  background:#ff9800; /* orange */
+}
+.copy-btn{
+  width:auto;              /* important */
+  padding:4px 8px;
+  margin-top:0;            /* enlève l’espace vertical */
+  border:none;
+  border-radius:6px;
+  font-size:11px;
+  cursor:pointer;
+  background:var(--btn);
+  color:white;
+  transition:0.2s;
+}
+
+.copy-btn:hover{
+  background:var(--btnHover);
+  transform:scale(1.05);
+}
+</style>
+</head>
+
+<body>
+
+<div class="box">
+<div class="sos">🚨</div>
+<h1>SOS Code Nomenclature</h1>
+<div class="subtitle">Perdu dans la nomenclature ? SOS Code Nomenclature vient à la rescousse !</div>
+<div id="welcome"></div>
+
+<input id="search" placeholder="Ex: steak, buffet, fruits">
+<button onclick="recherche()">🔍 Rechercher</button>
+<button onclick="perdu()">😵 Je suis perdu(e)</button>
+<button class="secondary" onclick="signaler()">📢 Signaler un besoin non trouvé</button>
+
+<div style="text-align:right;margin-top:5px">
+<button onclick="changerPrenom()" style="width:auto;padding:6px 10px;font-size:12px;border-radius:10px;background:rgba(0,0,0,0.08);color:#444">✏️ Changer prénom</button>
+</div>
+
+<div id="result"></div>
+<div class="history" id="history"></div>
+<button onclick="viderHistorique()" style="margin-top:5px;background:#ff758c">🗑️ Vider l’historique</button>
+</div>
+
+<img src="mascotte.png" class="mascotte" id="mascotte">
+<div class="bubble" id="bubble">👋 Besoin d’aide ? Tape ton achat et je t’aide !</div>
+<img src="logo.png" class="logo-fond">
+
+<script src="nomenclature.js"></script>
+
+<script>
+// ================= CATEGORIES =================
+const categories = {
+"01":"ALIMENTATION ET HEBERGEMENT",
+"02":"TEXTILES",
+"03":"FORMATION QUALIFICATION",
+"04":"AFFRANCHISSEMENT, DOCUMENTATION ET PRODUITS DE L'EDITION",
+"05":"ENVIRONNEMENT DU BUREAU ET MOBILIER",
+"06":"SYSTEMES INFORMATIQUES ET TELECOMS",
+"07":"PRESTATIONS JURIDIQUES",
+"08":"ETUDES",
+"09":"PREVENTION",
+"10":"COMMUNICATION",
+"11":"CULTURE ANIMATION DIVERTISSEMENT",
+"12":"PROPRETE ET HYGIENE",
+"13":"TRANSPORT",
+"14":"MAINTENANCE BATIMENTS ET ESPACES PUBLICS",
+"15":"CONSTRUCTION TRAVAUX RESEAUX",
+"16":"ESPACES VERTS, CIMETIERE, ANIMALERIE",
+"17":"SANITAIRE ET SOCIAL",
+"18":"AUDIOVISUEL",
+"19":"SECURITE PREVENTION ET POLICE MUNICIPALE"
+};
+
+// ================= FAMILLES =================
+const familles = {
+"0101":"FOURNITURE DE DENREES ALIMENTAIRES",
+"0102":"ARTICLES DE RESTAURATION",
+"0103":"ELECTROMENAGER",
+"0104":"HOTELLERIE ET RESTAURATION",
+"0105":"SERVICES SANITAIRES",
+"0201":"TEXTILES, HABILLEMENT ET EPI",
+"0301":"SERVICE D'EDUCATION, DE QUALIFICATION ET D'INSERTION",
+"0401":"AFFRANCHISSEMENT",
+"0402":"PRODUITS DE L'EDITION",
+"0501":"FOURNITURES DE BUREAU",
+"0502":"MOBILIER ET EQUIPEMENTS",
+"0601":"EQUIPEMENT EDITIQUE ET INFORMATIQUE",
+"0602":"EQUIPEMENT TELEPHONIQUE",
+"0603":"ETUDES ET ASSISTANCE TELECOMMUNICATIONS",
+"0604":"SERVICES INFORMATIQUES",
+"0701":"ASSURANCES",
+"0702":"SERVICES JURIDIQUES ET IMMOBILIERS",
+"0801":"ETUDES CONSEIL ET EXPERTISES",
+"0901":"SANTE ET SECURITE",
+"1001":"PUBLICITÉ ET OBJETS PUBLICITAIRES",
+"1002":"IMPRESSION REPROGRAPHIE",
+"1003":"SIGNALETIQUE",
+"1004":"ANNONCES ET INSERTION",
+"1005":"PHOTOGRAPHIE",
+"1101":"CULTURE",
+"1102":"EDUCATION ET RECREATION",
+"1103":"SPORTS",
+"1201":"PRODUITS D'ENTRETIEN ET ARTICLES DE DROGUERIE",
+"1202":"APPAREILS, MACHINES D'ENTRETIEN ET DE TRAITEMENT",
+"1203":"ENTRETIEN DE BIENS, LOCAUX ET ESPACES PUBLICS",
+"1301":"PRODUITS PETROLIERS ET BIOLOGIQUES",
+"1302":"MATERIELS DE TRANSPORT",
+"1303":"MAINTENANCE DES MATERIELS DE TRANSPORT",
+"1304":"TRANSPORT DE PERSONNES ET DE MARCHANDISES",
+"1305":"STATIONNEMENT, FOURRIERE ET PEAGES",
+"1401":"ACQUISITION ET MAINTENANCE D'OUTILLAGES",
+"1402":"ACQUISITION ET TRAITEMENT DE MATERIAUX",
+"1403":"ACQUISITION, INSTALLATION ET MAINTENANCE D'EQUIPEMENTS",
+"1404":"ACQUISITION, LOCATION ET MAINTENANCE DES ESPACES",
+"1405":"ACQUISITION, MAINTENANCE ET PIECES DETACHEES",
+"1406":"FUNERAIRE",
+"1407":"SIGNALISATION ET BALISAGE",
+"1501":"TRAVAUX D'INSTALLATION, CONSTRUCTION, REHABILITATION",
+"1502":"ETUDE ET EXPERTISE BATIMENTS",
+"1503":"OPERATIONS DE TRAVAUX",
+"1601":"FOURNITURE DE VEGETAUX",
+"1602":"FOURNITURES HORTICOLES",
+"1603":"MATERIEL ESPACES VERTS",
+"1604":"PRESTATIONS DE SERVICE D'ESPACES VERTS",
+"1605":"FOURNITURE DE VEGETAUX ARTIFICIELS",
+"1606":"ANIMALERIE",
+"1701":"FOURNITURES",
+"1702":"MATERIEL",
+"1703":"PRESTATIONS DE SERVICES SANITAIRES",
+"1801":"IMAGE SON LUMIERE",
+"1901":"EQUIPEMENTS OPERATIONNELS DE POLICE MUNICIPALE"
+};
+
+// ================= DOM =================
+const search = document.getElementById("search");
+const result = document.getElementById("result");
+const historyEl = document.getElementById("history");
+
+// ================= THEME =================
+const themes=[
+{bg:"linear-gradient(135deg,#ff9a9e,#fad0c4)",btn:"#ff758c",hover:"#ff5c77"},
+{bg:"linear-gradient(135deg,#a18cd1,#fbc2eb)",btn:"#a18cd1",hover:"#8b75c9"},
+{bg:"linear-gradient(135deg,#f6d365,#fda085)",btn:"#f6a365",hover:"#f08a45"},
+{bg:"linear-gradient(135deg,#84fab0,#8fd3f4)",btn:"#5ec9b5",hover:"#48b4a1"}
+];
+
+const theme=themes[Math.floor(Math.random()*themes.length)];
+document.body.style.background=theme.bg;
+document.documentElement.style.setProperty('--btn',theme.btn);
+document.documentElement.style.setProperty('--btnHover',theme.hover);
+
+// ================= UTIL =================
+function normalize(text){
+return (text||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+}
+
+function cleanTitle(text){
+  let t = text || "";
+
+  // Coupe après ( ou :
+  t = t.split("(")[0].split(":")[0];
+
+  // Coupe si on trouve F , T ou S isolés (marqueurs internes)
+  t = t.split(" F ")[0]
+       .split(" T ")[0]
+       .split(" S ")[0];
+
+  t = t.trim();
+
+  return t.length > 90 ? t.substring(0,90) + "…" : t;
+}
+
+function getTypeAchat(text){
+  if(!text) return "";
+
+  if(text.includes(" F ")) return "F";
+  if(text.includes(" S ")) return "S";
+  if(text.includes(" T ")) return "T";
+
+  return "";
+}
+
+function getCategorie(code){
+  let c = code.substring(0,2);
+  return c+" — "+(categories[c] || "Autre");
+}
+
+function getCategorie(code){
+let c = code.substring(0,2);
+return c+" — "+(categories[c] || "Autre");
+}
+
+function getFamille(code){
+let f=code.substring(0,4);
+let lib = familles[f] || "Autre";
+return f+" — "+lib.substring(0,50)+(lib.length>50?"…":"");
+}
+
+// ================= PRENOM =================
+let prenom=localStorage.getItem("prenomAgent");
+if(!prenom){
+prenom = prompt("👋 Quel est ton prénom ?") || "Agent";
+localStorage.setItem("prenomAgent", prenom);
+}
+document.getElementById("welcome").innerHTML =
+  `<div style="margin-bottom:15px;font-size:14px;color:#555">
+     Bonjour <strong>${prenom}</strong> 👋
+   </div>`;
+function changerPrenom(){
+  prenom = prompt("Nouveau prénom ?") || "Agent";
+  localStorage.setItem("prenomAgent", prenom);
+  location.reload();
+}
+document.getElementById("welcome").innerHTML =
+  `<div style="margin-bottom:15px;font-size:14px;color:#555">
+     Bonjour <strong>${prenom}</strong> 👋
+   </div>`;
+
+// ================= HISTORIQUE =================
+let history=JSON.parse(localStorage.getItem("historyNomenclature"))||[];
+
+function updateHistory(){
+if(!history.length){historyEl.innerHTML="🕘 Aucun historique";return;}
+historyEl.innerHTML="🕘 Historique : "+history.map(h=>`<span onclick="rechercheHistorique('${h}')" style="cursor:pointer;color:#6c7ae0">${h}</span>`).join(" • ");
+}
+updateHistory();
+
+function viderHistorique(){
+history=[];
+localStorage.removeItem("historyNomenclature");
+updateHistory();
+}
+
+function rechercheHistorique(val){
+search.value=val;
+recherche(true);
+}
+
+// ================= RECHERCHE =================
+const stopWords=["acheter","achat","commander","commande","prestation","fournir","fourniture","besoin"];
+
+function recherche(depuisHistorique=false){
+let q=normalize(search.value);
+if(!q) return;
+
+if(!depuisHistorique){
+history.unshift(q);
+history=history.slice(0,5);
+localStorage.setItem("historyNomenclature",JSON.stringify(history));
+updateHistory();
+}
+
+let mots=q.split(" ").filter(m=>!stopWords.includes(m));
+
+let res = data.map(d => {
+
+  let score = 0;
+
+  let article = normalize(d.article || "");
+  let motscles = normalize(d.mots || "");
+  let synonymes = normalize(d.synonymes || "");
+  let metier = normalize(d.metier || "");
+
+  mots.forEach(m => {
+    if(article.includes(m)) score += 3;
+    if(motscles.includes(m)) score += 2;
+    if(synonymes.includes(m)) score += 1;
+    if(metier.includes(m)) score += 1;
+  });
+
+  return {...d, score};
+
+})
+.filter(d => d.score > 0)
+.sort((a,b) => b.score - a.score)
+.slice(0,5);
+let ecartFort = false;
+
+if(res.length > 1){
+  if(res[0].score >= res[1].score + 3){
+    ecartFort = true;
+  }
+}
+
+if(res.length > 0){
+
+  result.innerHTML = `
+  <div style="margin-bottom:12px;font-size:13px;color:#666;text-align:left">
+    ${res.length} résultat(s) trouvé(s)
+  </div>
+  ` + res.map((r, index) => `
+  <div class="result ${index === 0 ? 'top-result' : ''}">
+    ${index === 0 ? `<div class="best-badge">⭐ Meilleure correspondance</div>` : ''}
+
+   <div style="display:flex;justify-content:space-between;align-items:center">
+  <div class="badge">${getCategorie(r.code)}</div>
+  ${getTypeAchat(r.article) ? `
+    <div class="type-badge type-${getTypeAchat(r.article)}">
+      ${getTypeAchat(r.article)}
+    </div>
+  ` : ""}
+</div>
+    <h3 class="titre">${cleanTitle(r.article)}</h3>
+    
+    <div class="infos">
+      <div><strong>Famille :</strong> ${getFamille(r.code)}</div>
+      <div style="margin-top:8px; display:flex; align-items:center; gap:10px;">
+  <span class="code-highlight">📌 ${r.code}</span>
+  <button class="copy-btn" onclick="copierCode('${r.code}', this)">
+    📋 Copier
+  </button>
+</div>
+    </div>
+  </div>
+  `).join("");
+
+}else{
+  result.innerHTML = "<div class='result'>❌ Aucun résultat<br><small>Essaie avec un mot plus simple 😊</small></div>";
+}
+}
+function copierCode(code, button){
+  navigator.clipboard.writeText(code).then(() => {
+    
+    const texteInitial = button.innerHTML;
+    button.innerHTML = "✔ Copié";
+    button.style.background = "#4caf50";
+
+    setTimeout(() => {
+      button.innerHTML = texteInitial;
+      button.style.background = "";
+    }, 1500);
+
+  });
+}
+// ================= EVENTS =================
+search.addEventListener("keydown",e=>{if(e.key==="Enter") recherche();});
+
+function perdu(){alert(prenom+" 😊 Décris ton besoin avec des mots simples");}
+function signaler(){window.location.href="mailto:commandepublique@bolbec.fr";}
+
+</script>
+
+</body>
+</html>
